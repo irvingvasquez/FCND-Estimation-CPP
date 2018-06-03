@@ -182,7 +182,7 @@ VectorXf QuadEstimatorEKF::PredictState(VectorXf curState, float dt, V3F accel, 
   A[4] = curState[4];
   A[5] = curState[5] - CONST_GRAVITY * dt; 
   A[6] = curState[6];
-  
+
   V3F s_dot_dot = attitude.Rotate_BtoI(accel);
   
   VectorXf B(7);
@@ -200,6 +200,7 @@ VectorXf QuadEstimatorEKF::PredictState(VectorXf curState, float dt, V3F accel, 
 
   return predictedState;
 }
+
 
 MatrixXf QuadEstimatorEKF::GetRbgPrime(float roll, float pitch, float yaw)
 {

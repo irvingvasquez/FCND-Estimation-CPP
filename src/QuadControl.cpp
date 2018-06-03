@@ -230,29 +230,28 @@ float QuadControl::AltitudeControl(float posZCmd, float velZCmd, float posZ, flo
   float thrust = 0;
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
-  float z_error = posZCmd - posZ;
-  float z_dot_c = kpPosZ * (z_error) + velZCmd;
+  const float ROTORS_AMOUNT = 4.0;
   
-  if(-z_dot_c > maxAscentRate)
-    z_dot_c = -maxAscentRate;
-  else
-    if(z_dot_c > maxDescentRate)
-      z_dot_c = maxDescentRate;
+  // First order proportional with ff control for velocity 
+  const float z_error = posZCmd - posZ;
+  // vel command is feedwarded
+  velZCmd += kpPosZ * z_error;
+  
+  // First order proportional integral ff control for acceleration 
+  const float vel_z_error = velZCmd - velZ;
   
   integratedAltitudeError += z_error * dt;
-  float z_dot_dot = kpVelZ * (z_dot_c - velZ) + KiPosZ * (integratedAltitudeError) +  accelZCmd;
-  
-  //WARNING: Next sentence is a test!
-  // z_dot_dot = kpPosZ * z_error + kpVelZ * (velZCmd - velZ) +  KiPosZ * (integratedAltitudeError) +  accelZCmd;
+  const float i_term = KiPosZ * integratedAltitudeError;
+  float u_1_bar = kpVelZ * vel_z_error + KiPosZ * integratedAltitudeError + accelZCmd;
   
   // converting acceleration to force
-  thrust = (CONST_GRAVITY - z_dot_dot) * mass / R(2,2);
+  thrust = (CONST_GRAVITY - u_1_bar) * mass / R(2,2);
   
-  // check thrust
-  if (thrust > maxMotorThrust*4.0)
-    thrust = maxMotorThrust*4.0;
-  else if (thrust < minMotorThrust*4.0)
-     thrust = minMotorThrust*4.0;
+  // validate the thrust
+  if (thrust > maxMotorThrust * ROTORS_AMOUNT)
+    thrust = maxMotorThrust * ROTORS_AMOUNT;
+  else if (thrust < minMotorThrust * ROTORS_AMOUNT)
+     thrust = minMotorThrust * ROTORS_AMOUNT;
    
   /////////////////////////////// END STUDENT CODE ////////////////////////////
   
